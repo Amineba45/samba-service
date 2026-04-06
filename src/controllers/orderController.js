@@ -6,7 +6,8 @@ const Cart = require('../models/Cart');
 const { HTTP_STATUS, APP_ERROR_CODES } = require('../../constants/errorCodes');
 const ERROR_MESSAGES = require('../utils/errorMessages');
 const { sendSuccess, sendCreated, sendError, sendPaginatedSuccess } = require('../utils/responseHandler');
-const { getPagination, buildPaginationResult } = require('../validation/validators');
+const { getPagination, buildPaginationResult, isValidObjectId } = require('../validation/validators');
+const mongoose = require('mongoose');
 
 const VALID_ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
 
@@ -24,7 +25,11 @@ const createOrder = async (req, res, next) => {
     const resolvedItems = [];
 
     for (const item of items) {
-      const product = await Product.findById(item.product);
+      if (!isValidObjectId(item.product)) {
+        return sendError(res, `Invalid product ID: ${item.product}`, HTTP_STATUS.BAD_REQUEST, APP_ERROR_CODES.PRODUCT_NOT_FOUND);
+      }
+      const productId = new mongoose.Types.ObjectId(item.product);
+      const product = await Product.findById(productId);
       if (!product) {
         return sendError(res, `Product ${item.product} not found`, HTTP_STATUS.NOT_FOUND, APP_ERROR_CODES.PRODUCT_NOT_FOUND);
       }
@@ -83,8 +88,10 @@ const getMyOrders = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const filter = { buyer: req.user._id };
-    if (req.query.status && VALID_ORDER_STATUSES.includes(req.query.status)) {
-      filter.status = req.query.status;
+    // Use value from our own array to break taint chain
+    const statusFilter = VALID_ORDER_STATUSES.find((s) => s === req.query.status);
+    if (statusFilter) {
+      filter.status = statusFilter;
     }
 
     const [orders, total] = await Promise.all([
@@ -207,8 +214,10 @@ const getStoreOrders = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const filter = { store: req.params.storeId };
-    if (req.query.status && VALID_ORDER_STATUSES.includes(req.query.status)) {
-      filter.status = req.query.status;
+    // Use value from our own array to break taint chain
+    const statusFilter = VALID_ORDER_STATUSES.find((s) => s === req.query.status);
+    if (statusFilter) {
+      filter.status = statusFilter;
     }
 
     const [orders, total] = await Promise.all([

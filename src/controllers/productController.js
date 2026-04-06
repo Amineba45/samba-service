@@ -1,5 +1,6 @@
 'use strict';
 
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Store = require('../models/Store');
 const Review = require('../models/Review');
@@ -17,7 +18,11 @@ const { uploadMultipleImages, deleteImage } = require('../utils/fileUpload');
 const createProduct = async (req, res, next) => {
   try {
     // Verify store ownership
-    const store = await Store.findById(req.body.store);
+    if (!isValidObjectId(req.body.store)) {
+      return sendError(res, ERROR_MESSAGES.STORE_NOT_FOUND, HTTP_STATUS.NOT_FOUND, APP_ERROR_CODES.STORE_NOT_FOUND);
+    }
+    const storeId = new mongoose.Types.ObjectId(req.body.store);
+    const store = await Store.findById(storeId);
     if (!store) {
       return sendError(res, ERROR_MESSAGES.STORE_NOT_FOUND, HTTP_STATUS.NOT_FOUND, APP_ERROR_CODES.STORE_NOT_FOUND);
     }

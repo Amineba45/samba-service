@@ -1,6 +1,7 @@
 const Store = require('../models/Store');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { STORE_STATUS } = require('../utils/constants');
+const { sanitizeUpdateData } = require('../utils/validators');
 
 // @desc    Get all stores
 // @route   GET /api/v1/stores
@@ -66,7 +67,8 @@ const updateStore = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: 'Not authorized to update this store' });
   }
 
-  store = await Store.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const sanitized = sanitizeUpdateData(req.body);
+  store = await Store.findByIdAndUpdate(req.params.id, { $set: sanitized }, { new: true, runValidators: true });
   res.json({ success: true, data: store });
 });
 

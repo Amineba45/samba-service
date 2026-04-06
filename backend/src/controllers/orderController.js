@@ -62,7 +62,7 @@ const createOrder = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid storeId' });
   }
 
-  const store = await Store.findById(storeId);
+  const store = await Store.findById(new mongoose.Types.ObjectId(String(storeId)));
   if (!store || store.status !== 'active') {
     return res.status(400).json({ success: false, message: 'Store not available' });
   }
@@ -74,7 +74,7 @@ const createOrder = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(String(item.productId))) {
       return res.status(400).json({ success: false, message: `Invalid productId: ${item.productId}` });
     }
-    const product = await Product.findById(item.productId);
+    const product = await Product.findById(new mongoose.Types.ObjectId(String(item.productId)));
     if (!product || !product.isActive) {
       return res.status(400).json({ success: false, message: `Product ${item.productId} not available` });
     }

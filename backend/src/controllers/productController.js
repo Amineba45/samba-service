@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { sanitizeUpdateData } = require('../utils/validators');
 
 const getProducts = asyncHandler(async (req, res) => {
   const { storeId, categoryId, search, page = 1, limit = 20 } = req.query;
@@ -50,9 +51,13 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(String(req.params.id))) {
+    return res.status(400).json({ success: false, message: 'Invalid product ID' });
+  }
+  const sanitized = sanitizeUpdateData(req.body);
   const product = await Product.findByIdAndUpdate(
-    mongoose.Types.ObjectId.isValid(String(req.params.id)) ? req.params.id : null,
-    req.body, { new: true, runValidators: true });
+    req.params.id,
+    { $set: sanitized }, { new: true, runValidators: true });
   if (!product) {
     return res.status(404).json({ success: false, message: 'Product not found' });
   }

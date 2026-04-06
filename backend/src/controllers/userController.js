@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { USER_ROLES } = require('../utils/constants');
+const { sanitizeUpdateData } = require('../utils/validators');
 
 const getUsers = asyncHandler(async (req, res) => {
   const { role, page = 1, limit = 20 } = req.query;
@@ -30,8 +31,9 @@ const getUser = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const { password, role, ...updateData } = req.body;
-  const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+  const { password, role, ...rawUpdateData } = req.body;
+  const updateData = sanitizeUpdateData(rawUpdateData);
+  const user = await User.findByIdAndUpdate(req.params.id, { $set: updateData }, { new: true, runValidators: true });
   if (!user) {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
@@ -48,8 +50,9 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  const { password, role, ...updateData } = req.body;
-  const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true, runValidators: true });
+  const { password, role, ...rawUpdateData } = req.body;
+  const updateData = sanitizeUpdateData(rawUpdateData);
+  const user = await User.findByIdAndUpdate(req.user._id, { $set: updateData }, { new: true, runValidators: true });
   res.json({ success: true, data: user });
 });
 

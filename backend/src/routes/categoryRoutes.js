@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { sanitizeUpdateData } = require('../utils/validators');
 
 router.get('/', asyncHandler(async (req, res) => {
   const { storeId } = req.query;
@@ -24,7 +25,8 @@ router.post('/', protect, authorize('store_admin', 'super_admin'), asyncHandler(
 }));
 
 router.put('/:id', protect, authorize('store_admin', 'super_admin'), asyncHandler(async (req, res) => {
-  const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const sanitized = sanitizeUpdateData(req.body);
+  const category = await Category.findByIdAndUpdate(req.params.id, { $set: sanitized }, { new: true });
   if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
   res.json({ success: true, data: category });
 }));

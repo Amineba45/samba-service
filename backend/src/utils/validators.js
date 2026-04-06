@@ -12,4 +12,22 @@ const validateCoordinates = (lat, lng) => {
   return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 };
 
-module.exports = { validateEmail, validatePhone, validateCoordinates };
+/**
+ * Strip MongoDB operator keys (keys starting with '$') from an object
+ * to prevent NoSQL operator injection attacks.
+ */
+const sanitizeUpdateData = (data) => {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return {};
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([key]) => !key.startsWith('$'))
+      .map(([key, value]) => [
+        key,
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+          ? sanitizeUpdateData(value)
+          : value
+      ])
+  );
+};
+
+module.exports = { validateEmail, validatePhone, validateCoordinates, sanitizeUpdateData };

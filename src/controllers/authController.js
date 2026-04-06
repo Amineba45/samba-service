@@ -1,33 +1,72 @@
-const bcrypt = require('bcrypt');
+'use strict';
+
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const logger = require('../config/logger');
 
-const users = []; // This should ideally be a database
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret_in_production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-// Register function
-const register = async (req, res) => {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users.push({ username, password: hashedPassword });
-    res.status(201).send('User registered');
+const register = async (req, res, next) => {
+    try {
+        const { firstName, lastName, email, password, phone } = req.body;
+
+        const existing = await User.findOne({ email: String(email) });
+        if (existing) {
+            return res.status(409).json({ success: false, message: 'Email already registered' });
+        }
+
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const user = await User.create({ firstName, lastName, email, password: hashedPassword, phone });
+
+        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+        logger.info(`User registered: ${user._id}`);
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully',
+            token,
+            user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role }
+        });
+    } catch (err) {
+        next(err);
+    }
 };
 
-// Login function
-const login = (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find(u => u.username === username);
-    if (!user) return res.status(400).send('User not found');
+const login = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
 
-    const validPassword = bcrypt.compareSync(password, user.password);
-    if (!validPassword) return res.status(400).send('Invalid password');
+        const user = await User.findOne({ email: String(email) });
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
 
-    const token = jwt.sign({ username: user.username }, 'your_jwt_secret'); // Use a strong secret in production
-    res.json({ token });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+        logger.info(`User logged in: ${user._id}`);
+        res.json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role }
+        });
+    } catch (err) {
+        next(err);
+    }
 };
 
-// Logout function
 const logout = (req, res) => {
-    // Logic for logout (e.g. invalidate JWT on client side)
-    res.send('User logged out');
+    // JWT is stateless; client should discard the token.
+    res.json({ success: true, message: 'Logged out successfully' });
 };
 
 module.exports = { register, login, logout };

@@ -2,39 +2,39 @@
 
 const mongoose = require('mongoose');
 
-// Define User Schema
 const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    lastName: {
+        type: String,
+        required: true,
+        trim: true
+    },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        lowercase: true,
+        trim: true
     },
     password: {
         type: String,
         required: true
     },
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
-        type: String,
-        required: true
-    },
     phone: {
         type: String,
-        required: false
+        trim: true
     },
     role: {
         type: String,
-        enum: ['user', 'admin'], // Roles could be defined as needed
-        default: 'user'
+        enum: ['customer', 'seller', 'admin'],
+        default: 'customer'
     }
 }, {
-    timestamps: true // Automatically manage createdAt and updatedAt fields
+    timestamps: true
 });
 
-// Create User model
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

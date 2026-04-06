@@ -1,1 +1,49 @@
-{\n  \"name\": \"samba-service\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Backend services for samba application\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n  },\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"git+https://github.com/Amineba45/samba-service.git\"\n  },\n  \"keywords\": [\n    \"backend\",\n    \"express\",\n    \"mongoose\",\n    \"jwt\",\n    \"joi\",\n    \"multer\",\n    \"nodemailer\",\n    \"cloudinary\",\n    \"winston\",\n    \"swagger\",\n    \"cors\",\n    \"bcryptjs\",\n    \"dotenv\"\n  ],\n  \"author\": \"Amineba45\",\n  \"license\": \"ISC\",\n  \"dependencies\": {\n    \"express\": \"latest\",\n    \"mongoose\": \"latest\",\n    \"jsonwebtoken\": \"latest\",\n    \"joi\": \"latest\",\n    \"multer\": \"latest\",\n    \"nodemailer\": \"latest\",\n    \"cloudinary\": \"latest\",\n    \"winston\": \"latest\",\n    \"swagger-ui-express\": \"latest\",\n    \"cors\": \"latest\",\n    \"bcryptjs\": \"latest\",\n    \"dotenv\": \"latest\"\n  }\n}
+{
+  "name": "samba-service",
+  "version": "1.0.0",
+  "description": "Backend services for samba application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amineba45/samba-service.git"
+  },
+  "keywords": [
+    "backend",
+    "express",
+    "mongoose",
+    "jwt",
+    "joi",
+    "multer",
+    "nodemailer",
+    "cloudinary",
+    "winston",
+    "swagger",
+    "cors",
+    "bcryptjs",
+    "dotenv"
+  ],
+  "author": "Amineba45",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.6.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "cloudinary": "^2.7.0",
+    "winston": "^3.11.0",
+    "swagger-ui-express": "^5.0.0",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

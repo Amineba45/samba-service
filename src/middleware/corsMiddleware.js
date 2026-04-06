@@ -10,7 +10,15 @@ const corsOptions = {
     origin: (origin, callback) => {
         // Allow requests with no origin (e.g. mobile apps, curl)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        if (allowedOrigins.includes('*')) {
+            if (process.env.NODE_ENV === 'production') {
+                // Warn but allow if explicitly configured
+                // eslint-disable-next-line no-console
+                console.warn('CORS: wildcard origin is enabled in production.');
+            }
+            return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
         return callback(new Error(`CORS policy: origin ${origin} not allowed.`));

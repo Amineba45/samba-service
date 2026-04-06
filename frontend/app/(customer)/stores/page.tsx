@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { storeApi } from '@/lib/api'
 import { MapPin, Clock, Truck } from 'lucide-react'
 import Link from 'next/link'
@@ -99,9 +100,9 @@ export default function StoresPage() {
                 href={`/stores/${store._id}`}
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 overflow-hidden group"
               >
-                <div className="h-40 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+                <div className="relative h-40 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
                   {store.logo ? (
-                    <img src={store.logo} alt={store.name} className="h-full w-full object-cover" />
+                    <Image src={store.logo} alt={store.name} fill className="object-cover" />
                   ) : (
                     <span className="text-4xl font-bold text-primary-400">
                       {store.name.charAt(0)}

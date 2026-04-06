@@ -1,18 +1,42 @@
-const jwt = require('jsonwebtoken');
+'use strict';
 
-// JWT token verification middleware
-function authMiddleware(req, res, next) {
-    const token = req.headers['authorization'];
-    if (!token) {
-        return res.status(403).send('Token is required for authentication.');
-    }
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).send('Invalid token.');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const User = require('../models/User');
+
+/**
+ * JWT verification middleware.
+ * Expects Bearer token in Authorization header.
+ * Attaches the full user document to req.user.
+ */
+const authMiddleware = async (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Authentication token required.' });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(new mongoose.Types.ObjectId(decoded.id)).select('-passwordHash -refreshToken');
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'User not found.' });
         }
         req.user = user;
         next();
-    });
-}
+    } catch (err) {
+        return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+    }
+};
+
+/**
+ * Role-based authorization middleware factory.
+ */
+const authorize = (...roles) => (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions.' });
+    }
+    next();
+};
 
 module.exports = authMiddleware;
+module.exports.authorize = authorize;

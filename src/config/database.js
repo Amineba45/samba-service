@@ -1,18 +1,25 @@
-const mongoose = require('mongoose');
+'use strict';
 
-const mongoURI = 'mongodb://<username>:<password>@localhost:27017/samba_service'; // Replace <username> and <password> with actual credentials
+const mongoose = require('mongoose');
+const logger = require('./logger');
 
 const connectDB = async () => {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+        logger.error('MONGODB_URI environment variable is not set.');
+        process.exit(1);
+    }
     try {
-        await mongoose.connect(mongoURI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        console.log('MongoDB Connected...');
+        await mongoose.connect(uri);
+        logger.info('MongoDB connected successfully.');
     } catch (error) {
-        console.error('MongoDB connection error:', error.message);
+        logger.error(`MongoDB connection error: ${error.message}`);
         process.exit(1);
     }
 };
+
+mongoose.connection.on('disconnected', () => {
+    logger.warn('MongoDB disconnected.');
+});
 
 module.exports = connectDB;
